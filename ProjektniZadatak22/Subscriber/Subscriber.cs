@@ -19,31 +19,27 @@ namespace Subscriber
             factory = this.CreateChannel();
         }
 
-        public bool RegisterPublisher(string subject)
+        public bool Subscribe(string subject)
         {
-            return true;
+            throw new NotImplementedException();
         }
 
-        public void Subscribe(Alarm alarm)
+        public bool Unsubsrcibe(string subject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool RegisterPublisher(string subject)
         {
             throw new NotImplementedException();
         }
 
         public bool UnregisterPublisher()
         {
-            if (factory.UnregisterPublisher())
-            {
-                Console.WriteLine("Publisher successfully unregistered.");
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Publisher does not exist.");
-                return false;
-            }
+            throw new NotImplementedException();
         }
 
-        public void Unsubsrcibe(Alarm alarm)
+        public void Publish(Alarm alarm)
         {
             throw new NotImplementedException();
         }
@@ -58,24 +54,14 @@ namespace Subscriber
             this.Close();
         }
 
-        public void CreateAlarm(int period)
+        public bool RegisterSubscriber()
         {
-            while (!StopThread)
-            {
-                string[] messages = File.ReadAllLines("messages.txt");
-                Random randomInt = new Random();
-                Alarm alarm = new Alarm(DateTime.Now, messages[randomInt.Next(0, messages.Count())], randomInt.Next(0, 101));
-
-                Console.WriteLine("Napravljen alarm");
-                Publish(alarm);
-
-                Thread.Sleep(period * 1000);
-            }
+            return factory.RegisterSubscriber();
         }
 
-        public void Publish(Alarm alarm)
+        public bool UnregisterSubscriber()
         {
-            factory.Publish(alarm);
+            throw new NotImplementedException();
         }
     }
 }

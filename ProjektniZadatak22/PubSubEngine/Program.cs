@@ -14,7 +14,7 @@ namespace PubSubEngine
         {
             NetTcpBinding binding = new NetTcpBinding();
 
-            string address = "net.tcp://localhost:9999/Publisher";
+            string address = "net.tcp://localhost:9999/PubSubEngine";
 
             ServiceHost host = new ServiceHost(typeof(PubSubEngine));
             host.AddServiceEndpoint(typeof(IPubSubEngine), binding, address);

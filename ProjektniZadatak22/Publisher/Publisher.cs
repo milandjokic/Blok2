@@ -40,7 +40,7 @@ namespace Publisher
             }
         }
 
-        public void Subscribe(Alarm alarm)
+        public bool Subscribe(string subject)
         {
             throw new NotImplementedException();
         }
@@ -59,7 +59,7 @@ namespace Publisher
             }
         }
 
-        public void Unsubsrcibe(Alarm alarm)
+        public bool Unsubsrcibe(string subject)
         {
             throw new NotImplementedException();
         }
@@ -78,7 +78,7 @@ namespace Publisher
         {
             while(!StopThread)
             {
-                string[] messages = File.ReadAllLines("messages.txt");
+                string[] messages = File.ReadAllLines(@"../../../Publisher/messages.txt");
                 Random randomInt = new Random();
                 Alarm alarm = new Alarm(DateTime.Now, messages[randomInt.Next(0, messages.Count())], randomInt.Next(0, 101));
 
@@ -93,5 +93,15 @@ namespace Publisher
         {
             factory.Publish(alarm);
         }
+
+        public bool RegisterSubscriber()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool UnregisterSubscriber()
+        {
+            throw new NotImplementedException();
+        } 
     }
 }

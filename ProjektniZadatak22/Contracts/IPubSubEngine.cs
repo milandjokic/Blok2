@@ -17,10 +17,16 @@ namespace Contracts
         bool UnregisterPublisher();
 
         [OperationContract]
-        void Subscribe(Alarm alarm);
+        bool RegisterSubscriber();
 
         [OperationContract]
-        void Unsubsrcibe(Alarm alarm);
+        bool UnregisterSubscriber();
+
+        [OperationContract]
+        bool Subscribe(string subject);
+
+        [OperationContract]
+        bool Unsubsrcibe(string subject);
 
         [OperationContract]
         void Publish(Alarm alarm);
