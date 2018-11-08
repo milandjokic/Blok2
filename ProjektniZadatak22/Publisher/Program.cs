@@ -14,6 +14,7 @@ namespace Publisher
         static void Main(string[] args)
         {
             NetTcpBinding binding = new NetTcpBinding();
+            binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
             string address = "net.tcp://localhost:9999/PubSubEngine";
 
             Publisher proxy = new Publisher(binding, new EndpointAddress(new Uri(address)));

@@ -13,6 +13,8 @@ namespace Subscriber
         static void Main(string[] args)
         {
             NetTcpBinding binding = new NetTcpBinding();
+            binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
+
             string address = "net.tcp://localhost:8888/Subscriber";
 
             ServiceHost host = new ServiceHost(typeof(SubscriberHost));
