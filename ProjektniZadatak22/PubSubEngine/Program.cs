@@ -27,28 +27,33 @@ namespace PubSubEngine
             host.AddServiceEndpoint(typeof(IPubSubEngine), binding, address);
 
             host.Credentials.ClientCertificate.Authentication.CertificateValidationMode = X509CertificateValidationMode.Custom;
-            //host.Credentials.ClientCertificate.Authentication.CustomCertificateValidator = new ClientCertValidator();
+            host.Credentials.ClientCertificate.Authentication.CustomCertificateValidator = new ServerCertValidator();
             host.Credentials.ClientCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
+            
             host.Credentials.ServiceCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, srvCertCN);
-
+            //Manager.ServerCertValidator.v
             //host.Credentials.ServiceCertificate.Certificate = CertManager.GetCertificateFromFile("PubSubEngine.pfx");
 
+            //Console.WriteLine(host.Credentials.ClientCertificate.Certificate.PublicKey.ToString());
 
             try
             {
-            host.Open();
-
+                host.Open();
+                Console.WriteLine("PubSubEngine is open. Press <enter> to finish...");
+                Console.ReadLine();
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("[ERROR] {0}", e.Message);
+                //Console.WriteLine("[StackTrace] {0}", e.StackTrace);
+
             }
-        
-            Console.WriteLine("PubSubEngine is open. Press <enter> to finish...");
+            finally
+            {
+            }
+            //host.Close();
+
             Console.ReadLine();
-
-            host.Close();
-
         }
     }
 }

@@ -6,6 +6,8 @@ using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Security.Cryptography.X509Certificates;
+using Manager;
 
 namespace Publisher
 {
@@ -13,28 +15,38 @@ namespace Publisher
     {
         static void Main(string[] args)
         {
+            string srvCertCN = "PubSubEngine";
+            string signCertCN = "SignP";
+
             NetTcpBinding binding = new NetTcpBinding();
             binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
-            string address = "net.tcp://localhost:9999/PubSubEngine";
 
-            Publisher proxy = new Publisher(binding, new EndpointAddress(new Uri(address)));
+            X509Certificate2 srvCert = CertManager.GetCertificateFromStorage(StoreName.TrustedPeople, StoreLocation.LocalMachine, srvCertCN);
+            EndpointAddress address = new EndpointAddress(new Uri("net.tcp://localhost:9999/PubSubEngine"), new X509CertificateEndpointIdentity(srvCert));
 
-            Console.WriteLine("Publisher is connected");
+            using (Publisher proxy = new Publisher(binding, address))
+            {
+                Console.WriteLine("Publisher is connected");
 
-            proxy.RegisterPublisher("Topic 1");
+                proxy.RegisterPublisher("Topic 1");
 
-            Console.Write("Enter timeout (in seconds) between publishes:");
-            int period = Int32.Parse(Console.ReadLine());
+                Console.Write("Enter timeout (in seconds) between publishes:");
+                int period = Int32.Parse(Console.ReadLine());
 
-            Thread threadCreateAlarm = new Thread(() => proxy.CreateAlarm(period));
-            threadCreateAlarm.Start();
+                Thread threadCreateAlarm = new Thread(() => proxy.CreateAlarm(period));
+                threadCreateAlarm.Start();
 
-            Console.ReadLine();
+                Console.ReadLine();
 
-            proxy.StopThread = true;
-            threadCreateAlarm.Join();
+                proxy.StopThread = true;
+                threadCreateAlarm.Join();
 
-            proxy.UnregisterPublisher();
+                proxy.UnregisterPublisher();
+            }
+
+
+
+            
 
         }
     }

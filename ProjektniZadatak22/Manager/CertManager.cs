@@ -22,12 +22,13 @@ namespace Manager
         {
             X509Store store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadOnly);
-
+            Console.WriteLine(store.Certificates.Count);
             X509Certificate2Collection certCollection = store.Certificates.Find(X509FindType.FindBySubjectName, subjectName, true);
 
             /// Check whether the subjectName of the certificate is exactly the same as the given "subjectName"
             foreach (X509Certificate2 c in certCollection)
             {
+                Console.WriteLine(c.SubjectName.Name);
                 if (c.SubjectName.Name.Equals(string.Format("CN={0}", subjectName)))
                 {
                     return c;
@@ -46,6 +47,7 @@ namespace Manager
         public static X509Certificate2 GetCertificateFromFile(string fileName)
         {
             X509Certificate2 certificate = null;
+            
 
             ///In order to create .pfx file, access to a protected .pvk file will be required.
             ///For security reasons, password must not be kept as string. .NET class SecureString provides a confidentiality of a plaintext
