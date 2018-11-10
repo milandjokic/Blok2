@@ -14,6 +14,8 @@ namespace Contracts
         private string message;
         private int risk;
 
+        public Alarm() { }
+
         public Alarm(DateTime dateTime, string message, int risk)
         {
             this.DateTime = dateTime;
@@ -39,7 +41,22 @@ namespace Contracts
             set { dateTime = value; }
         }
 
+        public string Serialize()
+        {
+            return DateTime.ToString() + ';' + Message + ';' + Risk;
+        }
 
+        public Alarm Deserialize(string param)
+        {
+            Alarm alarm = new Alarm();
 
+            string[] tokens = param.Split(';');
+
+            alarm.DateTime = DateTime.Parse(tokens[0]);
+            alarm.Message = tokens[1];
+            alarm.Risk = Int32.Parse(tokens[2]);
+
+            return alarm;
+        }
     }
 }

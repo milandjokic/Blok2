@@ -28,6 +28,10 @@ namespace Publisher
             {
                 Console.WriteLine("Publisher is connected");
 
+                X509Certificate2 signCert = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, signCertCN);
+
+                byte[] signature = DigitalSignature.Create(message, "SHA1", signCert);
+
                 proxy.RegisterPublisher("Topic 1");
 
                 Console.Write("Enter timeout (in seconds) between publishes:");
