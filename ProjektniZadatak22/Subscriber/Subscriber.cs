@@ -1,8 +1,11 @@
 ﻿using Contracts;
+using Manager;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
@@ -10,38 +13,42 @@ using System.Threading.Tasks;
 
 namespace Subscriber
 {
-    public class Subscriber : ChannelFactory<IPubSubEngine>, IPubSubEngine, IDisposable
+    public class Subscriber : DuplexChannelFactory<ISubscriber>, ISubscriber, IDisposable
     {
-        IPubSubEngine factory;
+        ISubscriber factory;
 
-        public Subscriber(NetTcpBinding binding, EndpointAddress address) : base(binding, address)
+        public Subscriber(NetTcpBinding binding, EndpointAddress address, MyServiceCallback callback) : base(callback, binding, address)
         {
+            string cltCertCN = Manager.Formatter.ParseName(WindowsIdentity.GetCurrent().Name);
+
+            this.Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.Custom;
+            this.Credentials.ServiceCertificate.Authentication.CustomCertificateValidator = new ClientCertValidator();
+            this.Credentials.ServiceCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
+
+            this.Credentials.ClientCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, cltCertCN);
+
             factory = this.CreateChannel();
         }
 
         public bool Subscribe(string subject)
         {
-            throw new NotImplementedException();
+            if(factory.Subscribe(subject))
+            {
+                Console.WriteLine("Successfully subcribed to topic [" + subject + "]");
+                return true;
+            }
+            return false;
         }
 
         public bool Unsubsrcibe(string subject)
         {
-            throw new NotImplementedException();
-        }
-
-        public bool RegisterPublisher(string subject)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool UnregisterPublisher()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Publish(Alarm alarm)
-        {
-            throw new NotImplementedException();
+            if(factory.Unsubsrcibe(subject))
+            {
+                Console.WriteLine("Successfully unsubcribed from topic [" + subject + "]");
+                return true;
+            }
+            Console.WriteLine("Topic doesn't exist");
+            return false;
         }
 
         public void Dispose()
@@ -61,7 +68,9 @@ namespace Subscriber
 
         public bool UnregisterSubscriber()
         {
-            throw new NotImplementedException();
+            return factory.UnregisterSubscriber();
         }
+
+        
     }
 }

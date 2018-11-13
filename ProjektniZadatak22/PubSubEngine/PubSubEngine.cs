@@ -1,7 +1,9 @@
 ﻿using Contracts;
+using Manager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
@@ -9,8 +11,16 @@ using System.Threading.Tasks;
 
 namespace PubSubEngine
 {
-    public class PubSubEngine : IPubSubEngine
+    [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Reentrant)]
+    public class PubSubEngine : IPublisher, ISubscriber
     {
+        public static IMyServiceCallBack Callback;
+
+
+
+
+
+
         public bool RegisterPublisher(string subject)
         {
             string[] tokens = OperationContext.Current.SessionId.Split('=');
@@ -25,17 +35,34 @@ namespace PubSubEngine
             {
                 Database.GetInstance().Publishers.Add(id, new Topic(subject));
                 Console.WriteLine("Publisher registered.");
+                //Callback = OperationContext.Current.GetCallbackChannel<IMyServiceCallBack>();
 
-                if(Database.GetInstance().Subscribers.Count != 0)
+                if (Database.GetInstance().Subscribers.Count != 0)
                     ListAllTopics();
 
                 return true;
             }
         }
 
-        public bool Subscribe(string subject)
+        public void Publish(Alarm alarm, byte[] signature)
         {
-            throw new NotImplementedException();
+            string[] tokens = OperationContext.Current.SessionId.Split('=');
+            int id = Int32.Parse(tokens[1]);
+
+            X509Certificate2 clientCert = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, "SignP");
+            if (DigitalSignature.Verify(alarm, "SHA1", signature, clientCert))
+                Console.WriteLine("Digital signature is valid.");
+            else
+                Console.WriteLine("Digital signature is invalid");
+
+            Database.GetInstance().Publishers[id].Alarms.Add(alarm);
+
+            Console.WriteLine("Primljen alarm.");
+
+            if (Database.GetInstance().Subscribers.Count != 0)
+            {
+                //Callback.OnCallBack();
+            }
         }
 
         public bool UnregisterPublisher()
@@ -56,20 +83,22 @@ namespace PubSubEngine
             }
         }
 
+
+
+
+
+        public bool Subscribe(string subject)
+        {
+            throw new NotImplementedException();
+        }
+
+
+
         public bool Unsubsrcibe(string subject)
         {
             throw new NotImplementedException();
         }
 
-        public void Publish(Alarm alarm)
-        {
-            string[] tokens = OperationContext.Current.SessionId.Split('=');
-            int id = Int32.Parse(tokens[1]);
-
-            Database.GetInstance().Publishers[id].Alarms.Add(alarm);
-
-            Console.WriteLine("Primljen alarm.");
-        }
 
         public bool RegisterSubscriber()
         {
@@ -85,9 +114,10 @@ namespace PubSubEngine
             {
                 Database.GetInstance().Subscribers.Add(id, new List<Topic>());
                 Console.WriteLine("Subscriber registered.");
+                Callback = OperationContext.Current.GetCallbackChannel<IMyServiceCallBack>();
 
                 SaveSubscriberIp(id, OperationContext.Current);
-                ListAllTopics();
+                //ListAllTopics();
 
                 return true;
             }
@@ -95,7 +125,10 @@ namespace PubSubEngine
 
         public bool UnregisterSubscriber()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Nikola Dragasevic");
+            Callback.OnCallBack();
+            return true;
+            //throw new NotImplementedException();
         }
 
         public void SaveSubscriberIp(int id, OperationContext context)
@@ -107,6 +140,11 @@ namespace PubSubEngine
 
             Database.GetInstance().SubscribersIps.Add(id, new EndpointAddress(new Uri(ip)));
         }
+
+
+
+
+
 
         public void ListAllTopics()
         {
@@ -121,7 +159,7 @@ namespace PubSubEngine
                 ChannelFactory<ISubscriber> factory = new ChannelFactory<ISubscriber>(new NetTcpBinding(), element.Value);
                 ISubscriber proxy = factory.CreateChannel();
 
-                proxy.ListAllTopics(subjects);
+                //proxy.ListAllTopics(subjects);
 
                 proxy = null;
             }

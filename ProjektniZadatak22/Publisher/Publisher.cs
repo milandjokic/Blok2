@@ -1,5 +1,6 @@
 ﻿using Contracts;
 using Manager;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,12 +15,12 @@ using System.Threading.Tasks;
 
 namespace Publisher
 {
-    public class Publisher : ChannelFactory<IPubSubEngine>, IPubSubEngine, IDisposable
+    public class Publisher : ChannelFactory<IPublisher>, IPublisher, IDisposable
     {
         bool stopThread = false;
 
 
-        IPubSubEngine factory;
+        IPublisher factory;
 
         public bool StopThread { get => stopThread; set => stopThread = value; }
 
@@ -53,11 +54,7 @@ namespace Publisher
             }
         }
 
-        public bool Subscribe(string subject)
-        {
-            throw new NotImplementedException();
-        }
-
+       
         public bool UnregisterPublisher()
         {
             if (factory.UnregisterPublisher())
@@ -72,11 +69,7 @@ namespace Publisher
             }
         }
 
-        public bool Unsubsrcibe(string subject)
-        {
-            throw new NotImplementedException();
-        }
-
+      
         public void Dispose()
         {
             if(factory!=null)
@@ -87,34 +80,25 @@ namespace Publisher
             this.Close();
         }
 
-        public void CreateAlarm(int period)
+        public void CreateAlarm(int period, X509Certificate2 signCert)
         {
             while(!StopThread)
             {
                 string[] messages = File.ReadAllLines(@"../../../Publisher/messages.txt");
                 Random randomInt = new Random();
-                Alarm alarm = new Alarm(DateTime.Now, messages[randomInt.Next(0, messages.Count())], randomInt.Next(0, 101));
+                Alarm alarm = new Alarm(DateTime.Now, messages[randomInt.Next(0, messages.Count())], randomInt.Next(1, 101));
+                byte[] signature = DigitalSignature.Create(alarm, "SHA1", signCert);
 
                 Console.WriteLine("Napravljen alarm");
-                Publish(alarm);
+                Publish(alarm,signature);
 
                 Thread.Sleep(period * 1000);
             }
         }
 
-        public void Publish(Alarm alarm)
+        public void Publish(Alarm alarm, byte[] signature)
         {
-            factory.Publish(alarm);
-        }
-
-        public bool RegisterSubscriber()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool UnregisterSubscriber()
-        {
-            throw new NotImplementedException();
-        } 
+            factory.Publish(alarm,signature);
+        }     
     }
 }

@@ -42,7 +42,7 @@ namespace Manager
         }
 
 
-        public static bool Verify(string message, string hashAlgorithm, byte[] signature, X509Certificate2 certificate)
+        public static bool Verify(Alarm alarm, string hashAlgorithm, byte[] signature, X509Certificate2 certificate)
         {
             /// Looks for the certificate's public key to verify a message
             RSACryptoServiceProvider csp = (RSACryptoServiceProvider)certificate.PublicKey.Key;
@@ -50,8 +50,10 @@ namespace Manager
             /// hash the message using SHA-1 (assume that "hashAlgorithm" is SHA-1)
             SHA1Managed sha1 = new SHA1Managed();
             UnicodeEncoding encoding = new UnicodeEncoding();
-            byte[] data = encoding.GetBytes(message);
+            byte[] data = encoding.GetBytes(alarm.Serialize());
             byte[] hash = sha1.ComputeHash(data);
+
+
 
 
             /// Use RSACryptoServiceProvider support to compare two - hash value from signature and newly created hash value			

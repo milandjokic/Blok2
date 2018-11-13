@@ -1,9 +1,13 @@
 ﻿using Contracts;
+using Manager;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Subscriber
@@ -12,24 +16,39 @@ namespace Subscriber
     {
         static void Main(string[] args)
         {
+            string srvCertCN = "PubSubEngine";
+
             NetTcpBinding binding = new NetTcpBinding();
             binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
 
-            string address = "net.tcp://localhost:8888/Subscriber";
+            X509Certificate2 srvCert = CertManager.GetCertificateFromStorage(StoreName.TrustedPeople, StoreLocation.LocalMachine, srvCertCN);
 
-            ServiceHost host = new ServiceHost(typeof(SubscriberHost));
-            host.AddServiceEndpoint(typeof(ISubscriber), binding, address);
+            //string address = "net.tcp://localhost:8888/Subscriber";
 
-            host.Open();
+            EndpointAddress address = new EndpointAddress(new Uri("net.tcp://localhost:8888/Subscriber"), new X509CertificateEndpointIdentity(srvCert));
 
-            address = "net.tcp://localhost:9999/PubSubEngine";
-            Subscriber proxy = new Subscriber(binding, new EndpointAddress(new Uri(address)));
+            var subscriberCallback = new MyServiceCallback();
+            var instanceContext = new InstanceContext(subscriberCallback);
+            
+            using (Subscriber proxy = new Subscriber(binding, address, subscriberCallback))
+            {
+                Console.WriteLine("Subscriber is connected");
+               
+                
+                proxy.RegisterSubscriber();
+                Console.Write("Enter topic to subscribe : ");
+                string topic = Console.ReadLine();
+                proxy.Subscribe(topic);
+                proxy.Unsubsrcibe("Topic 1");
+                proxy.Unsubsrcibe("Topic 8");
+                proxy.UnregisterSubscriber();
+                Console.ReadLine();
 
-            proxy.RegisterSubscriber();
+         
+            }
 
-            Console.ReadLine();
 
-            host.Close();
+
         }
     }
 }

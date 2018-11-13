@@ -7,10 +7,19 @@ using System.Threading.Tasks;
 
 namespace Contracts
 {
-    [ServiceContract]
+    [ServiceContract(CallbackContract = typeof(IMyServiceCallBack))]
     public interface ISubscriber
     {
         [OperationContract]
-        void ListAllTopics(List<string> subjects);
+        bool RegisterSubscriber();
+
+        [OperationContract]
+        bool UnregisterSubscriber();
+
+        [OperationContract]
+        bool Subscribe(string subject);
+
+        [OperationContract]
+        bool Unsubsrcibe(string subject);
     }
 }

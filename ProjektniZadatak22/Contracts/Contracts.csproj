@@ -45,7 +45,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alarm.cs" />
-    <Compile Include="IPubSubEngine.cs" />
+    <Compile Include="IMyServiceCallBack.cs" />
+    <Compile Include="IPublisher.cs" />
     <Compile Include="ISubscriber.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Topic.cs" />

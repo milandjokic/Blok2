@@ -13,11 +13,19 @@ namespace PubSubEngine
         private Dictionary<int, Topic> publishers;
         private Dictionary<int, List<Topic>> subscribers;
         private Dictionary<int, EndpointAddress> subscribersIps;
+        private Dictionary<int, IMyServiceCallBack> callbacks;
+        //public Dictionary<int, IMyServiceCallBack> Callbacks { get; set; }
 
         public Dictionary<int, EndpointAddress> SubscribersIps
         {
             get { return subscribersIps; }
             set { subscribersIps = value; }
+        }
+
+        public Dictionary<int, IMyServiceCallBack> Callbacks
+        {
+            get { return callbacks; }
+            set { callbacks = value; }
         }
 
 
@@ -26,6 +34,7 @@ namespace PubSubEngine
             Publishers = new Dictionary<int, Topic>();
             Subscribers = new Dictionary<int, List<Topic>>();
             SubscribersIps = new Dictionary<int, EndpointAddress>();
+            Callbacks = new Dictionary<int, IMyServiceCallBack>();
         }
 
         private static Database instance;

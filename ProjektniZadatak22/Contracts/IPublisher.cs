@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Contracts
 {
     [ServiceContract]
-    public interface IPubSubEngine
+    public interface IPublisher
     {
         [OperationContract]
         bool RegisterPublisher(string subject);
@@ -17,18 +17,6 @@ namespace Contracts
         bool UnregisterPublisher();
 
         [OperationContract]
-        bool RegisterSubscriber();
-
-        [OperationContract]
-        bool UnregisterSubscriber();
-
-        [OperationContract]
-        bool Subscribe(string subject);
-
-        [OperationContract]
-        bool Unsubsrcibe(string subject);
-
-        [OperationContract]
-        void Publish(Alarm alarm);
+        void Publish(Alarm alarm, byte[] signature);
     }
 }
