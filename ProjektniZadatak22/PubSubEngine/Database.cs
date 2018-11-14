@@ -1,75 +1,26 @@
 ﻿using Contracts;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PubSubEngine
 {
-    public class Database
-    {
-        private Dictionary<int, Topic> publishers;
-        private Dictionary<int, List<Topic>> subscribers;
-        private Dictionary<int, EndpointAddress> subscribersIps;
-        private Dictionary<int, IMyServiceCallBack> callbacks;
-        //public Dictionary<int, IMyServiceCallBack> Callbacks { get; set; }
+	public class Database
+	{
+		public Dictionary<int, Topic> Publishers { get; set; }
+		public Dictionary<int, List<Topic>> Subscribers { get; set; }
+		public Dictionary<int, IMyServiceCallBack> Callbacks { get; set; }
 
-        public Dictionary<int, EndpointAddress> SubscribersIps
-        {
-            get { return subscribersIps; }
-            set { subscribersIps = value; }
-        }
+		private static readonly Database instance = new Database();
+		
+		private Database()
+		{
+			Publishers = new Dictionary<int, Topic>();
+			Subscribers = new Dictionary<int, List<Topic>>();
+			Callbacks = new Dictionary<int, IMyServiceCallBack>();
+		}
 
-        public Dictionary<int, IMyServiceCallBack> Callbacks
-        {
-            get { return callbacks; }
-            set { callbacks = value; }
-        }
-
-
-        private Database()
-        {
-            Publishers = new Dictionary<int, Topic>();
-            Subscribers = new Dictionary<int, List<Topic>>();
-            SubscribersIps = new Dictionary<int, EndpointAddress>();
-            Callbacks = new Dictionary<int, IMyServiceCallBack>();
-        }
-
-        private static Database instance;
-
-        public Dictionary<int, Topic> Publishers
-        {
-            get
-            {
-                return publishers;
-            }
-            set
-            {
-                publishers = value;
-            }
-        }
-        public Dictionary<int, List<Topic>> Subscribers
-        {
-            get
-            {
-                return subscribers;
-            }
-            set
-            {
-                subscribers = value;
-            }
-        }
-
-        public static Database GetInstance()
-        {
-            if(instance == null)
-            {
-                instance = new Database();
-            }
-
-            return instance;
-        }
-    }
+		public static Database GetInstance()
+		{
+			return instance;
+		}
+	}
 }

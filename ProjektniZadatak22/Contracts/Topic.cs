@@ -1,35 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Contracts
 {
-    [Serializable]
-    public class Topic
-    {
-        private string subject;
-        private List<Alarm> alarms;
+	[Serializable]
+	public class Topic
+	{
+		public string Subject { get; set; }
+        public int From { get; set; }
+        public int To { get; set; }
+		//public List<Alarm> Alarms { get; set; }
 
         public Topic(string subject)
         {
-            this.Subject = subject;
-            Alarms = new List<Alarm>();
+            Subject = subject;
         }
 
-        public List<Alarm> Alarms
-        {
-            get { return alarms; }
-            set { alarms = value; }
-        }
-
-
-        public string Subject
-        {
-            get { return subject; }
-            set { subject = value; }
-        }
-
-    }
+		public Topic(string subject, int from, int to)
+		{
+			Subject = subject;
+            From = from;
+            To = to;
+			//Alarms = new List<Alarm>();
+		}
+	}
 }

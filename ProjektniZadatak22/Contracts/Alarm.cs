@@ -1,62 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Contracts
 {
-    [Serializable]
-    public class Alarm
-    {
-        private DateTime dateTime;
-        private string message;
-        private int risk;
+	[Serializable]
+	public class Alarm
+	{
+		public DateTime TimeStamp { get; set; }
+		public string Message { get; set; }
+		public int Risk { get; set; }
 
-        public Alarm() { }
+		public Alarm(DateTime timeStamp, string message, int risk)
+		{
+			TimeStamp = timeStamp;
+			Message = message;
+			Risk = risk;
+		}
 
-        public Alarm(DateTime dateTime, string message, int risk)
-        {
-            this.DateTime = dateTime;
-            this.Message = message;
-            this.Risk = risk;
-        }
+		public string Serialize()
+		{
+			return TimeStamp.ToString() + ';' + Message + ';' + Risk;
+		}
 
-        public int Risk
-        {
-            get { return risk; }
-            set { risk = value; }
-        }
+		public Alarm Deserialize(string param)
+		{
+			string[] tokens = param.Split(';');
 
-        public string Message
-        {
-            get { return message; }
-            set { message = value; }
-        }
+			Alarm alarm = new Alarm(DateTime.Parse(tokens[0]), tokens[1], int.Parse(tokens[2]));
 
-        public DateTime DateTime
-        {
-            get { return dateTime; }
-            set { dateTime = value; }
-        }
-
-        public string Serialize()
-        {
-            return DateTime.ToString() + ';' + Message + ';' + Risk;
-        }
-
-        public Alarm Deserialize(string param)
-        {
-            Alarm alarm = new Alarm();
-
-            string[] tokens = param.Split(';');
-
-            alarm.DateTime = DateTime.Parse(tokens[0]);
-            alarm.Message = tokens[1];
-            alarm.Risk = Int32.Parse(tokens[2]);
-
-            return alarm;
-        }
-    }
+			return alarm;
+		}
+	}
 }

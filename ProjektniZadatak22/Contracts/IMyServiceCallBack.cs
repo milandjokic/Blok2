@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ServiceModel;
 
 namespace Contracts
 {
-    
-    public interface IMyServiceCallBack
-    {
-        [OperationContract]
-        void OnCallBack();
-    }
+
+	public interface IMyServiceCallBack
+	{
+		[OperationContract]
+		void ReceiveAlarm(Alarm alarm, byte[] signature, int id);
+
+		[OperationContract]
+		void ReceiveTopics(string topics);
+	}
 }

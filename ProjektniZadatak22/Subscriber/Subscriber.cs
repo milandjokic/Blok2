@@ -1,76 +1,95 @@
 ﻿using Contracts;
 using Manager;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Subscriber
 {
-    public class Subscriber : DuplexChannelFactory<ISubscriber>, ISubscriber, IDisposable
-    {
-        ISubscriber factory;
+	public class Subscriber : DuplexChannelFactory<ISubscriber>, ISubscriber, IDisposable
+	{
+		ISubscriber factory;
 
-        public Subscriber(NetTcpBinding binding, EndpointAddress address, MyServiceCallback callback) : base(callback, binding, address)
-        {
-            string cltCertCN = Manager.Formatter.ParseName(WindowsIdentity.GetCurrent().Name);
+		public Subscriber(NetTcpBinding binding, EndpointAddress address, MyServiceCallback callback) : base(callback, binding, address)
+		{
+			string cltCertCN = Formatter.ParseName(WindowsIdentity.GetCurrent().Name);
 
-            this.Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.Custom;
-            this.Credentials.ServiceCertificate.Authentication.CustomCertificateValidator = new ClientCertValidator();
-            this.Credentials.ServiceCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
+			Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.Custom;
+			Credentials.ServiceCertificate.Authentication.CustomCertificateValidator = new ClientCertValidator();
+			Credentials.ServiceCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
+			Credentials.ClientCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, cltCertCN);
 
-            this.Credentials.ClientCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, cltCertCN);
+			factory = CreateChannel();
+		}
 
-            factory = this.CreateChannel();
-        }
+		public void Dispose()
+		{
+			if (factory != null)
+			{
+				factory = null;
+			}
 
-        public bool Subscribe(string subject)
-        {
-            if(factory.Subscribe(subject))
+			Close();
+		}
+
+		public bool Subscribe(string subject, int from, int to)
+		{
+
+            try
             {
-                Console.WriteLine("Successfully subcribed to topic [" + subject + "]");
-                return true;
+			    if(factory.Subscribe(subject, from, to))
+			    {
+				    return true;
+			    }          
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
             return false;
         }
 
-        public bool Unsubsrcibe(string subject)
-        {
-            if(factory.Unsubsrcibe(subject))
+		public bool Unsubsrcibe(string subject)
+		{
+            try
             {
-                Console.WriteLine("Successfully unsubcribed from topic [" + subject + "]");
-                return true;
+			    if(factory.Unsubsrcibe(subject))
+			    {
+				    return true;
+			    }
             }
-            Console.WriteLine("Topic doesn't exist");
-            return false;
-        }
-
-        public void Dispose()
-        {
-            if (factory != null)
+            catch(Exception e)
             {
-                factory = null;
+                Console.WriteLine(e.Message);
             }
+			return false;
+		}
 
-            this.Close();
-        }
+		public bool RegisterSubscriber()
+		{
+            try
+            {
+			    return factory.RegisterSubscriber();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
+		}
 
-        public bool RegisterSubscriber()
-        {
-            return factory.RegisterSubscriber();
-        }
-
-        public bool UnregisterSubscriber()
-        {
-            return factory.UnregisterSubscriber();
-        }
-
-        
-    }
+		public bool UnregisterSubscriber()
+		{
+            try
+            {
+			    return factory.UnregisterSubscriber();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
+		}
+	}
 }

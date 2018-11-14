@@ -1,0 +1,3 @@
+1. Nismo pozvali nigde metodu Validate iz klase ClientCertValidator
+2. Nismo pozvali nigde metodu Validate iz klase ServerCertValidator
+3. Nismo nigde pozvali metodu Deserialize iz klase Alarm

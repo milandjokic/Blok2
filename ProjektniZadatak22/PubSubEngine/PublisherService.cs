@@ -2,81 +2,84 @@
 using Manager;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PubSubEngine
 {
-    public class PublisherService : IPublisher
-    {
-        public bool RegisterPublisher(string subject)
-        {
-            string[] tokens = OperationContext.Current.SessionId.Split('=');
-            int id = Int32.Parse(tokens[1]);
+	public class PublisherService : IPublisher
+	{
+		public bool RegisterPublisher(string subject)
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
 
-            if (Database.GetInstance().Publishers.ContainsKey(id))
-            {
-                Console.WriteLine("This publisher is already registered.");
-                return false;
-            }
-            else
-            {
-                Database.GetInstance().Publishers.Add(id, new Topic(subject));
-                Console.WriteLine("Publisher registered.");
-                //Callback = OperationContext.Current.GetCallbackChannel<IMyServiceCallBack>();
+			if (Database.GetInstance().Publishers.ContainsKey(id))
+			{
+				return false;
+			}
+			else
+			{
+				Database.GetInstance().Publishers.Add(id, new Topic(subject));
 
-                //if (Database.GetInstance().Subscribers.Count != 0)
-                    //ListAllTopics();
+				SendTopics();
 
-                return true;
-            }
-        }
+				return true;
+			}
+		}
 
-        public void Publish(Alarm alarm, byte[] signature)
-        {
-            string[] tokens = OperationContext.Current.SessionId.Split('=');
-            int id = Int32.Parse(tokens[1]);
+		public void Publish(Alarm alarm, byte[] signature)
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
 
-            X509Certificate2 clientCert = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, "SignP");
-            if (DigitalSignature.Verify(alarm, "SHA1", signature, clientCert))
-                Console.WriteLine("Digital signature is valid.");
-            else
-                Console.WriteLine("Digital signature is invalid");
+			//Database.GetInstance().Publishers[id].Alarms.Add(alarm);
 
-            Database.GetInstance().Publishers[id].Alarms.Add(alarm);
-
-            Console.WriteLine("Primljen alarm.");
-
-            if (Database.GetInstance().Subscribers.Count != 0)
-            {
-                //SubscriberService.Callback.OnCallBack();
-                foreach(KeyValuePair<int, IMyServiceCallBack> keyValuePair in Database.GetInstance().Callbacks)
+			if (Database.GetInstance().Subscribers.Count != 0)
+			{				
+                foreach(var v in Database.GetInstance().Subscribers)
                 {
-                    keyValuePair.Value.OnCallBack();
+                    foreach(var v2 in v.Value)
+                    {
+                        if(v2.Subject == Database.GetInstance().Publishers[id].Subject && v2.From <= alarm.Risk && v2.To >= alarm.Risk)
+                        {
+                            Database.GetInstance().Callbacks[v.Key].ReceiveAlarm(alarm, signature, v.Key);
+                        }
+                    }                  
                 }
+			}
+		}
 
-            }
-        }
+		public bool UnregisterPublisher()
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
 
-        public bool UnregisterPublisher()
-        {
-            string[] tokens = OperationContext.Current.SessionId.Split('=');
-            int id = Int32.Parse(tokens[1]);
+			if (Database.GetInstance().Publishers.ContainsKey(id))
+			{
+				Database.GetInstance().Publishers.Remove(id);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
 
-            if (Database.GetInstance().Publishers.ContainsKey(id))
-            {
-                Database.GetInstance().Publishers.Remove(id);
-                Console.WriteLine("This publisher is unregistered.");
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Publisher does not exist.");
-                return false;
-            }
-        }
-    }
+		public void SendTopics()
+		{
+			string topics = "";
+
+			foreach(Topic topic in Database.GetInstance().Publishers.Values)
+			{
+				topics += topic.Subject;
+				topics += "\n";
+			}
+
+			foreach(IMyServiceCallBack callback in Database.GetInstance().Callbacks.Values)
+			{
+				callback.ReceiveTopics(topics);
+			}
+		}
+	}
 }

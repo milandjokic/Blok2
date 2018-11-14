@@ -1,120 +1,117 @@
 ﻿using Contracts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PubSubEngine
 {
-    [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Reentrant)]
-    public class SubscriberService : ISubscriber
-    {
-        public static IMyServiceCallBack Callback;
+	[ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Reentrant)]
+	public class SubscriberService : ISubscriber
+	{
+		public bool RegisterSubscriber()
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
 
-        public bool Subscribe(string subject)
-        {
-            bool exist = false;
-            foreach(KeyValuePair<int, Topic> keyValuePair in Database.GetInstance().Publishers)
-            {
-                if (subject == keyValuePair.Value.Subject)
-                {
-                    
-                    foreach(var v in Database.GetInstance().Subscribers)
-                    {
-                        if(v.Value.Contains(keyValuePair.Value))
-                        {
-                            Console.WriteLine("Already subscribed to [" + subject + "]");
-                            return false;
-                        }
-                    }
-                    exist = true;
-                }
-            }
+			if (Database.GetInstance().Subscribers.ContainsKey(id))
+			{
+				return false;
+			}
+			else
+			{
+				Database.GetInstance().Subscribers.Add(id, new List<Topic>());
 
-            if (exist == false)
-            {
-                Console.WriteLine("Topic doesn't exist.");
-                return false;
-            }
-            return true;
-        }
+				IMyServiceCallBack Callback = OperationContext.Current.GetCallbackChannel<IMyServiceCallBack>();
+				Database.GetInstance().Callbacks.Add(id, Callback);
 
+				SendTopics();
 
-        //Unsubscribe ne radi bas najbolje, zapravo ni ne radi!
-        public bool Unsubsrcibe(string subject)
-        {
-            string[] tokens = OperationContext.Current.SessionId.Split('=');
-            int id = Int32.Parse(tokens[1]);
+				return true;
+			}
+		}
 
-                foreach(var v in Database.GetInstance().Subscribers[id])
-                {
-                    if(v.Subject == subject)
-                    {
-                        Console.WriteLine("Unsubscribed from [" + subject + "]");
-                        Database.GetInstance().Subscribers[id].Remove(v);
-                        return true;
-                    }
-                }
+		public bool UnregisterSubscriber()
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
 
-            Console.WriteLine("Topic doesn't exist");
-            return false;
-        }
+			if (Database.GetInstance().Subscribers.ContainsKey(id))
+			{
+				Database.GetInstance().Subscribers.Remove(id);
+				Database.GetInstance().Callbacks.Remove(id);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
 
+		public bool Subscribe(string subject, int from, int to)
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
+			
+			foreach(Topic topic in Database.GetInstance().Subscribers[id])
+			{
+				if(topic.Subject == subject)
+				{
+					return false;
+				}
+			}
 
-        public bool RegisterSubscriber()
-        {
-            string[] tokens = OperationContext.Current.SessionId.Split('=');
-            int id = Int32.Parse(tokens[1]);
+			bool exist = false;
+			foreach(KeyValuePair<int, Topic> publisher in Database.GetInstance().Publishers)
+			{
+				if(publisher.Value.Subject == subject)
+				{
+					exist = true;
+					break;
+				}
+			}
 
-            if (Database.GetInstance().Subscribers.ContainsKey(id))
-            {
-                Console.WriteLine("This subscriber is already registered.");
-                return false;
-            }
-            else
-            {
-                Database.GetInstance().Subscribers.Add(id, new List<Topic>());
-                Callback = OperationContext.Current.GetCallbackChannel<IMyServiceCallBack>();
-                Database.GetInstance().Callbacks.Add(id, Callback);
-                Console.WriteLine("Subscriber registered.");
+			if (exist == false)
+			{
+				return false;
+			}
+			else
+			{
+				Database.GetInstance().Subscribers[id].Add(new Topic(subject, from, to));
+				return true;
+			}
+		}
 
-                SaveSubscriberIp(id, OperationContext.Current);
-                //ListAllTopics();
+		public bool Unsubsrcibe(string subject)
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
 
-                return true;
-            }
-        }
+			foreach(Topic topic in Database.GetInstance().Subscribers[id])
+			{
+				if(topic.Subject == subject)
+				{
+					Database.GetInstance().Subscribers[id].Remove(topic);
+					return true;
+				}
+			}
 
-        public bool UnregisterSubscriber()
-        {
-            string[] tokens = OperationContext.Current.SessionId.Split('=');
-            int id = Int32.Parse(tokens[1]);
+			return false;
+		}
 
-            if (Database.GetInstance().Subscribers.ContainsKey(id))
-            {
-                Database.GetInstance().Subscribers.Remove(id);
-                Database.GetInstance().Callbacks.Remove(id);
-                Console.WriteLine("This subcriber is unregistered.");
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Subscriber does not exist.");
-                return false;
-            }
-        }
+		public void SendTopics()
+		{
+			string[] tokens = OperationContext.Current.SessionId.Split('=');
+			int id = int.Parse(tokens[1]);
 
-        public void SaveSubscriberIp(int id, OperationContext context)
-        {
-            MessageProperties prop = context.IncomingMessageProperties;
-            RemoteEndpointMessageProperty endpoint =
-               prop[RemoteEndpointMessageProperty.Name] as RemoteEndpointMessageProperty;
-            string ip = "net.tcp://" + endpoint.Address + ":8888/Subscriber";
+			string topics = "";
 
-            Database.GetInstance().SubscribersIps.Add(id, new EndpointAddress(new Uri(ip)));
-        }
-    }
+			foreach (Topic topic in Database.GetInstance().Publishers.Values)
+			{
+				topics += topic.Subject;
+				topics += "\n";
+			}
+
+			Database.GetInstance().Callbacks[id].ReceiveTopics(topics);
+		}
+	}
 }
