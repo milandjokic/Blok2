@@ -48,6 +48,7 @@
     <Compile Include="IMyServiceCallBack.cs" />
     <Compile Include="IPublisher.cs" />
     <Compile Include="ISubscriber.cs" />
+    <Compile Include="MyAuditBehavior.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Topic.cs" />
   </ItemGroup>

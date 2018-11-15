@@ -1,4 +1,5 @@
-﻿using Manager;
+﻿using Contracts;
+using Manager;
 
 using System;
 using System.Security.Cryptography.X509Certificates;
@@ -11,6 +12,8 @@ namespace Subscriber
         static void Main(string[] args)
         {
             string srvCertCN = "PubSubEngine";
+
+            MyAuditBehavior myAuditBehavior = new MyAuditBehavior();
 
             NetTcpBinding binding = new NetTcpBinding();
             binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
@@ -30,24 +33,19 @@ namespace Subscriber
 
                 while(true)
                 {
+                    proxy.RegisterSubscriber();
                     PrintMenu();
                     int choice = int.Parse(Console.ReadLine());
 
                     switch (choice)
                     {
                         case 1:
-                            if (proxy.RegisterSubscriber())
-                                Console.WriteLine("Successfully registered.");
-                            else
-                                Console.WriteLine("Failed to register.");
-                            break;
-                        case 2:
                             if (proxy.UnregisterSubscriber())
                                 Console.WriteLine("Successfully unregistered.");
                             else
                                 Console.WriteLine("Failed to unregister.");
                             break;
-                        case 3:
+                        case 2:
                             Console.Write("Enter topic name: ");
                             subject = Console.ReadLine();
                             Console.Write("Enter risk range: \nfrom: ");
@@ -59,7 +57,7 @@ namespace Subscriber
                             else
                                 Console.WriteLine("Unable to subscribe");
                             break;
-                        case 4:
+                        case 3:
                             Console.Write("Enter topic name: ");
                             if (proxy.Unsubsrcibe(Console.ReadLine()))
                                 Console.WriteLine("Successfully unsubscribed.");
@@ -71,7 +69,7 @@ namespace Subscriber
                             break;
                     }
 
-                    if (choice == 2)
+                    if (choice == 1)
                         break;
                 }
             }
@@ -80,7 +78,7 @@ namespace Subscriber
         public static void PrintMenu()
         {
             Console.WriteLine("*****************Menu*****************");
-            Console.WriteLine("1. Register\n2. Unregister(and exit)\n3. Subscribe\n4. Unsubscribe");
+            Console.WriteLine("1. Unregister(and exit)\n2. Subscribe\n3. Unsubscribe");
             Console.Write("Choose option: ");
         }
     }

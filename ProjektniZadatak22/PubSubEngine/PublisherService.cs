@@ -33,8 +33,6 @@ namespace PubSubEngine
 			string[] tokens = OperationContext.Current.SessionId.Split('=');
 			int id = int.Parse(tokens[1]);
 
-			//Database.GetInstance().Publishers[id].Alarms.Add(alarm);
-
 			if (Database.GetInstance().Subscribers.Count != 0)
 			{				
                 foreach(var v in Database.GetInstance().Subscribers)

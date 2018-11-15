@@ -12,7 +12,7 @@ namespace PubSubEngine
 	{
 		static void Main(string[] args)
 		{
-			string srvCertCN = Formatter.ParseName("PubSubEngine");
+			string srvCertCN = Formatter.ParseName(WindowsIdentity.GetCurrent().Name);
 			
 			NetTcpBinding binding = new NetTcpBinding();
 			binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
@@ -25,7 +25,8 @@ namespace PubSubEngine
 			hostPublisher.Credentials.ClientCertificate.Authentication.CertificateValidationMode = X509CertificateValidationMode.Custom;
 			hostPublisher.Credentials.ClientCertificate.Authentication.CustomCertificateValidator = new ServerCertValidator();
 			hostPublisher.Credentials.ClientCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
-			hostPublisher.Credentials.ServiceCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, srvCertCN);
+            hostPublisher.Credentials.ServiceCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, srvCertCN);
+           
 
 			address = "net.tcp://localhost:8888/Subscriber";
 
@@ -35,9 +36,9 @@ namespace PubSubEngine
 			hostSubscriber.Credentials.ClientCertificate.Authentication.CertificateValidationMode = X509CertificateValidationMode.Custom;
 			hostSubscriber.Credentials.ClientCertificate.Authentication.CustomCertificateValidator = new ServerCertValidator();
 			hostSubscriber.Credentials.ClientCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
-			hostSubscriber.Credentials.ServiceCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, srvCertCN);
-
-			try
+            hostSubscriber.Credentials.ServiceCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, srvCertCN);
+                  
+            try
 			{
 				hostPublisher.Open();
 				hostSubscriber.Open();

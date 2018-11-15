@@ -15,6 +15,7 @@ namespace Subscriber
             if (DigitalSignature.Verify(alarm, "SHA1", signature, clientCert))
             {
                 File.AppendAllText("alarms" + id + ".txt", alarm.Serialize() + '\n');
+                MyAuditBehavior.SubLogger(DateTime.Now, "alarms" + id.ToString(), signature);
             }
 		}
 

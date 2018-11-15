@@ -9,7 +9,6 @@ namespace Contracts
 		public string Subject { get; set; }
         public int From { get; set; }
         public int To { get; set; }
-		//public List<Alarm> Alarms { get; set; }
 
         public Topic(string subject)
         {
@@ -21,7 +20,6 @@ namespace Contracts
 			Subject = subject;
             From = from;
             To = to;
-			//Alarms = new List<Alarm>();
 		}
 	}
 }
